@@ -19,11 +19,10 @@ class PhoneServer:
         self.sock.bind((const_cs.HOST, const_cs.PORT))
         self.sock.settimeout(3)  # time out in order not to block forever
         self._logger.info("Server bound to socket " + str(self.sock))
-
+        self._serving = True
 
     def serve(self):
         self.sock.listen(1)
-        self._serving = True
         while self._serving:
             try:
                 (connection, address) = self.sock.accept()
@@ -31,17 +30,17 @@ class PhoneServer:
                     data = connection.recv(1024).decode("ascii")
                     if not data:
                         break
-                    if data.startswith("GET"):
-                        connection.send(search(data[3:]).encode("ascii"))
-                    elif data.startswith("GETALL"):
+                    if data.startswith("GETALL"):
                         connection.send(json.dumps(phones).encode("ascii"))
+                    elif data.startswith("GET"):
+                        connection.send(search(data[3:]).encode("ascii"))
                     else:
                         self._logger.error("Command is not found: " + data)
                         connection.send("Command is undefined.")
                 connection.close()
+                self._serving = False
             except socket.timeout:
                 pass
-        self._serving = False
         self.close()
 
 
