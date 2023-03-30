@@ -29,6 +29,7 @@ class PhoneServer:
                     elif data.startswith("GETALL"):
                         connection.send(json.dumps(phones).encode("ascii"))
                     else:
+                        self._logger.error("Command is not found: " + data)
                         connection.send("Command is undefined.")
                 connection.close()
             except socket.timeout:
