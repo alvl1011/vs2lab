@@ -19,11 +19,11 @@ class PhoneServer:
         self.sock.bind((const_cs.HOST, const_cs.PORT))
         self.sock.settimeout(3)  # time out in order not to block forever
         self._logger.info("Server bound to socket " + str(self.sock))
-        self._serving = True
 
 
     def serve(self):
         self.sock.listen(1)
+        self._serving = True
         while self._serving:
             try:
                 (connection, address) = self.sock.accept()
@@ -41,6 +41,7 @@ class PhoneServer:
                 connection.close()
             except socket.timeout:
                 pass
+        self._serving = False
         self.close()
 
 
