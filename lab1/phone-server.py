@@ -7,7 +7,7 @@ from phone_dictionary import phone_dictionary as phones
 
 class PhoneServer:
     """ The phone server """
-    _logger = logging.getLogger("vs2lab.lab1.phone-server.PhoneServer")
+    _logger = logging.getLogger("[vs2lab.lab1.phone-server.PhoneServer]")
     _serving = False
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
