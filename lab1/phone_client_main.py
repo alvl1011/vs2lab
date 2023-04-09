@@ -15,3 +15,5 @@ while True:
     elif command.startswith("EXIT"):
         client.close()
         break
+    else:
+        print("Command is undefined")
