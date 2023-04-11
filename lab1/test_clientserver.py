@@ -30,6 +30,7 @@ class TestEchoService(unittest.TestCase):
         msg = self.client.call("Hello VS2Lab")
         self.assertEqual(msg, 'Hello VS2Lab*')
 
+
     def tearDown(self):
         self.client.close()  # terminate client after each test
 

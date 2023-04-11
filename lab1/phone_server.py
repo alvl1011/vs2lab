@@ -4,22 +4,23 @@ import socket
 import json
 
 import const_cs
-from phone_dictionary import phone_dictionary as phones
 
 lab_logging.setup(stream_level=logging.INFO)  # init loging channels for the lab
 
 class PhoneServer:
     """ The phone server """
-    _logger = logging.getLogger("[vs2lab.lab1.phone-server.PhoneServer]")
+    _logger = logging.getLogger("vs2lab.lab1.phone_server.PhoneServer")
     _serving = False
+    phones_dict = {}
 
-    def __init__(self):
+    def __init__(self, phones = {}):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # prevents errors due to "addresses in use"
         self.sock.bind((const_cs.HOST, const_cs.PORT))
         self.sock.settimeout(3)  # time out in order not to block forever
         self._logger.info("Server bound to socket " + str(self.sock))
         self._serving = True
+        self.phones_dict = phones
 
     def serve(self):
         self.sock.listen(1)
@@ -31,14 +32,13 @@ class PhoneServer:
                     if not data:
                         break
                     if data.startswith("GETALL"):
-                        connection.send(json.dumps(phones).encode("ascii"))
+                        connection.send(json.dumps(self.phones_dict).encode("ascii"))
                     elif data.startswith("GET"):
-                        connection.send(search(data[3:]).encode("ascii"))
+                        connection.send(search(data[3:], self.phones_dict).encode("ascii"))
                     else:
-                        self._logger.error("Command is not found: " + data)
+                        self._logger.info("Command is not found: " + data)
                         connection.send("Command is undefined.")
                 connection.close()
-                self._serving = False
             except socket.timeout:
                 pass
         self.close()
@@ -49,8 +49,8 @@ class PhoneServer:
         self._logger.info("Server connection closed.")
 
 
-def search(name="default"):
-    for key, value in phones.items():
+def search(name="default", phones_dict = {}):
+    for key, value in phones_dict.items():
         if key == name:
             return key.capitalize() + "'s" + " phone: " + value
     return "Phone does not set for this person."
