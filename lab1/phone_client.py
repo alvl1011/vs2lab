@@ -24,11 +24,20 @@ class PhoneClient:
         return phone_data
     def getall(self):
         self.sock.send("GETALL".encode('ascii'))
-        data = self.sock.recv(1024)
-        phone_data = data.decode('ascii')
+        phone_data = {}
+        chunks = []
+        while True:
+            data = self.sock.recv(4096)
+            if data.decode("ascii") == "":
+                break
+            chunks.append(data)
+
+        for chunk in chunks:
+            for k, v in json.loads(chunk.decode('ascii')).items():
+                phone_data.update({k: v})
         print('\n ALL:')
-        format(json.loads(phone_data))
-        return json.loads(phone_data)
+        format(phone_data)
+        return phone_data
     def close(self):
         self.sock.close()
         self.logger.info("Client connection is down.")
@@ -37,3 +46,8 @@ class PhoneClient:
 def format(data):
     for key, value in data.items():
         print("\t" + key.capitalize() + "'s" + " phone: " + value)
+
+def fill_dict(dict, out_dict):
+    for key, value in dict.items():
+        out_dict.update({key: value})
+    return out_dict

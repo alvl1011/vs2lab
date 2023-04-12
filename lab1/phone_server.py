@@ -3,6 +3,8 @@ from context import lab_logging
 import socket
 import json
 
+from itertools import islice
+
 import const_cs
 
 lab_logging.setup(stream_level=logging.INFO)  # init loging channels for the lab
@@ -28,11 +30,13 @@ class PhoneServer:
             try:
                 (connection, address) = self.sock.accept()
                 while True:
-                    data = connection.recv(1024).decode("ascii")
+                    data = connection.recv(4096).decode("ascii")
                     if not data:
                         break
                     if data.startswith("GETALL"):
-                        connection.send(json.dumps(self.phones_dict).encode("ascii"))
+                        for chunk in chunks(self.phones_dict):
+                            connection.send(json.dumps(chunk).encode("ascii"))
+                        connection.send()
                     elif data.startswith("GET"):
                         connection.send(search(data[3:], self.phones_dict).encode("ascii"))
                     else:
@@ -55,4 +59,7 @@ def search(name="default", phones_dict = {}):
             return key.capitalize() + "'s" + " phone: " + value
     return "Phone does not set for this person."
 
-
+def chunks(data, size=150):
+   it = iter(data)
+   for i in range(0, len(data), size):
+      yield {k:data[k] for k in islice(it, size)}
