@@ -36,7 +36,7 @@ class PhoneServer:
                     if data.startswith("GETALL"):
                         for chunk in chunks(self.phones_dict):
                             connection.send(json.dumps(chunk).encode("ascii"))
-                        connection.send()
+                        connection.sendall('\x00'.encode('ascii'))
                     elif data.startswith("GET"):
                         connection.send(search(data[3:], self.phones_dict).encode("ascii"))
                     else:

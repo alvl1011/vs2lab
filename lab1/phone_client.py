@@ -28,7 +28,10 @@ class PhoneClient:
         chunks = []
         while True:
             data = self.sock.recv(4096)
-            if data.decode("ascii") == "":
+            if data.decode('ascii').endswith('\x00'):
+                tmp = data.decode('ascii').split('\x00')[0].encode('ascii')
+                if tmp != "".encode('ascii'):
+                    chunks.append(tmp)
                 break
             chunks.append(data)
 
