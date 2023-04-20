@@ -32,18 +32,22 @@ class TestPhoneServer(unittest.TestCase):
         msg = self.client.getall()
         self.assertEqual(msg, phone_dictionary)
 
+    def test_srv_get(self):
+        msg = self.client.get("no")
+        self.assertEqual(msg, "Phone does not set for this person.")
+
     def test_receive_get(self):
         for name in self.names:
             msg = self.client.get(name)
             self.assertEqual(msg.split('\'')[0].lower(), name)
 
-    # def test_getall_500(self):
-    #     phone_dict = {}
-    #     for i in range(1, 500):
-    #         phone_dict["Testuser" + str(i)] = str(i)
-    #     self._server.phones_dict = phone_dict
-    #     msg = self.client.getall()
-    #     self.assertEqual(msg, phone_dict)
+    def test_getall_500(self):
+        phone_dict = {}
+        for i in range(1, 500):
+            phone_dict["Testuser" + str(i)] = str(i)
+        self._server.phones_dict = phone_dict
+        msg = self.client.getall()
+        self.assertEqual(msg, phone_dict)
 
     def tearDown(self):
         self.client.close()  # terminate client after each test
