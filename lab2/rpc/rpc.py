@@ -24,12 +24,13 @@ class Client(threading.Thread):
         self.chan.bind(self.client)
         self.server = self.chan.subgroup('server')
         self.queue = []
+        self.callback = None
 
     def run(self):
         print("[Thread] Waiting for response")
         received_message = self.chan.receive_from(self.server)
         print("[Thread] Response received")
-        self.queue = received_message[1]
+        self.callback(received_message[1])
 
 
     def stop(self):
@@ -41,31 +42,13 @@ class Client(threading.Thread):
             print("[Client] ACK received")
             return
 
-    def append(self, data, db_list):
+    def append(self, data, db_list, callback):
         assert isinstance(db_list, DBList)
         msglst = (constRPC.APPEND, data, db_list)  # message payload
         self.chan.send_to(self.server, msglst)  # send msg to server
         self.ack_waiting()
         self.start()
-        time.sleep(1)
-        print("[Client] Here client does something")
-        time.sleep(1)
-        print("[Client] Here is a simulation of work")
-        time.sleep(1)
-        print("[Client] Are you boring?")
-        time.sleep(1)
-        print("[Client] I can show something to you")
-        time.sleep(1)
-        print("[Client] Ready?")
-        time.sleep(1)
-        print("[Client] Don't be so shy")
-        time.sleep(1)
-        print(image)
-        time.sleep(1)
-        print("[Client] Hopla!")
-        self.join()
-        print("[Thread] closed...")
-        return self.queue
+        self.callback = callback
 
 
 class Server:
