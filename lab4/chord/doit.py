@@ -11,6 +11,9 @@ import logging
 import sys
 import multiprocessing as mp
 
+import random
+import math
+
 import chordnode as chord_node
 import constChord
 from context import lab_channel, lab_logging
@@ -21,15 +24,32 @@ lab_logging.setup(stream_level=logging.INFO)
 class DummyChordClient:
     """A dummy client template with the channel boilerplate"""
 
-    def __init__(self, channel):
+    def __init__(self, channel, num_bits):
         self.channel = channel
         self.node_id = channel.join('client')
+        self.num_bits = num_bits
+        self.logger = logging.getLogger("vs2lab.lab4.doit.DummyChordClient")
 
     def enter(self):
         self.channel.bind(self.node_id)
 
     def run(self):
-        print("Implement me pls...")
+        self.channel.bind(self.node_id)
+        dest = [random.choice(list(self.channel.channel.smembers('node'))).decode()]
+        key = random.randint(0, (self.channel.MAXPROC-1))
+        self.logger.info("Sending Request to: {:04n} for key: {:04n}".format(int(dest[0]), key))
+        self.channel.send_to(dest, (constChord.LOOKUP_REQ, key))
+
+        while True:
+            message = self.channel.receive_from(dest)
+            request = message[1]
+            if request[0] == constChord.LOOKUP_REP:
+                print("###################")
+                print("Node ", request[1], " is responsible for ", key)
+                self.channel.send_to(  # a final multicast
+                    {i.decode() for i in list(self.channel.channel.smembers('node'))},
+                    constChord.STOP)
+                break
         self.channel.send_to(  # a final multicast
             {i.decode() for i in list(self.channel.channel.smembers('node'))},
             constChord.STOP)
@@ -44,7 +64,10 @@ def create_and_run(num_bits, node_class, enter_bar, run_bar):
     :param run_bar: barrier syncing node creation
     """
     chan = lab_channel.Channel(n_bits=num_bits)
-    node = node_class(chan)
+    if node_class == DummyChordClient:
+        node = node_class(chan, num_bits)
+    else:
+        node = node_class(chan)
     enter_bar.wait()  # wait for all nodes to join the channel
     node.enter()  # do what is needed to enter the ring
     run_bar.wait()  # wait for all nodes to finish entering
