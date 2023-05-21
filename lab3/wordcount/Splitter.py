@@ -1,5 +1,4 @@
 import pickle
-import requests
 import zmq
 import constPipe
 import re
